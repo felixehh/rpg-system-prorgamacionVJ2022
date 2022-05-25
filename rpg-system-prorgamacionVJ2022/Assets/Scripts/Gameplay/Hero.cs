@@ -28,11 +28,19 @@ public class Hero : Character, IHostile
         inputsController = GetComponent<InputsController>();
     }
 
-    void Start()
+    IEnumerator Start()
     {
         agent.speed = moveSpeed;
         agent.stoppingDistance = leaderMinDistance;
-        agent.enabled = !ImLeader;
+        while(true)
+        {
+            if(Gamemanager.Instance.CurrentGameMode)
+            {
+                agent.enabled = !ImLeader;
+                break;
+            }
+            yield return null;
+        }
     }
 
     protected override void Movement()
@@ -46,11 +54,16 @@ public class Hero : Character, IHostile
             transform.Translate(inputsController.Axis.normalized.magnitude * Vector3.forward * moveSpeed * Time.deltaTime);
             FacingDirection();
             movementValue = leader.IsMoving ? 1 : 0f;
+
+            Gamemanager.Instance.CurrentGameMode.GetGameUI.Health = health * 100f / maxHealth;
         }
         else
         {
-            agent.destination = leader.transform.position;
-            movementValue = agent.velocity != Vector3.zero ? 1 : 0f;
+            if(agent.enabled)
+            {
+                agent.destination = leader.transform.position;
+                movementValue = agent.velocity != Vector3.zero ? 1 : 0f;
+            }
         }
     }
 
